@@ -5,4 +5,4 @@ public/dist
 npm-debug.log
 public/download
 .nyc_output
-.idea/dist
+.idea/
