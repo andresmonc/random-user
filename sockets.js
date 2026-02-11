@@ -17,9 +17,22 @@ let stats = {
 
 let lastMinCheck = -1;
 
-updateStats();
+// Delay initial stats update to allow MongoDB connection attempt
+setTimeout(updateStats, 5000);
 setInterval(updateStats, 2500);
 function updateStats() {
+  // Skip stats update if MongoDB is not connected (1 = connected)
+  if (require('mongoose').connection.readyState !== 1) {
+    stats = {
+      today: { total: 'N/A', bandwidth: 'N/A' },
+      all: { total: 'N/A', bandwidth: 'N/A' },
+      30: { total: 'N/A', bandwidth: 'N/A' },
+      load: Math.round(os.loadavg()[0] * 100) + "%"
+    };
+    store.set('stats', stats);
+    return;
+  }
+
   async.parallel([
     (cb) => {
       Request.findOne({

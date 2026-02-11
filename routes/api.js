@@ -109,17 +109,24 @@ async function genUser(req, res, version) {
     };
     payload[version.replace(/\./g, '_')] = results;
 
-    let doc = await Request.findOneAndUpdate(
-      {date: util.getDateTime()},
-      {$setOnInsert: payload},
-      {
-        returnOriginal: false,
-        upsert: true,
-      }
-    );
+    // Log request to MongoDB if connected
+    if (require('mongoose').connection.readyState === 1) {
+      try {
+        let doc = await Request.findOneAndUpdate(
+          {date: util.getDateTime()},
+          {$setOnInsert: payload},
+          {
+            returnOriginal: false,
+            upsert: true,
+          }
+        );
 
-    if (doc !== null) {
-      await Request.updateOne({date: util.getDateTime()}, {$inc: payload});
+        if (doc !== null) {
+          await Request.updateOne({date: util.getDateTime()}, {$inc: payload});
+        }
+      } catch (err) {
+        // Silently fail if MongoDB is not available
+      }
     }
 
     res.send(ret);
@@ -186,17 +193,24 @@ async function genUser(req, res, version) {
   };
   payload[version.replace(/\./g, '_')] = results;
 
-  let doc = await Request.findOneAndUpdate(
-    {date: util.getDateTime()},
-    {$setOnInsert: payload},
-    {
-      returnOriginal: true,
-      upsert: true,
-    }
-  );
+  // Log request to MongoDB if connected
+  if (require('mongoose').connection.readyState === 1) {
+    try {
+      let doc = await Request.findOneAndUpdate(
+        {date: util.getDateTime()},
+        {$setOnInsert: payload},
+        {
+          returnOriginal: true,
+          upsert: true,
+        }
+      );
 
-  if (doc !== null) {
-    await Request.updateOne({date: util.getDateTime()}, {$inc: payload});
+      if (doc !== null) {
+        await Request.updateOne({date: util.getDateTime()}, {$inc: payload});
+      }
+    } catch (err) {
+      // Silently fail if MongoDB is not available
+    }
   }
 
   // Download or output file
